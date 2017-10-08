@@ -14,8 +14,10 @@ import time
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
+import numpy as np
 import pandas as pd
 import xgboost as xgb
+from sklearn.model_selection import StratifiedShuffleSplit
 from utils import metric
 from utils import data_utils
 
@@ -38,7 +40,7 @@ def main():
 
     id_test = test['id']
 
-    y_train = train['target']
+    y_train_all = train['target']
 
     train.drop(['id', 'target'], axis=1, inplace=True)
     test.drop(['id'], axis=1, inplace=True)
@@ -48,13 +50,13 @@ def main():
     feature_util.feature_check_before_modeling(train, test, train.columns)
 
     print("---> start cv training")
-    X_train = train
+    train_all = train
     X_test = test
     df_columns = train.columns.values
-    dtest = xgb.DMatrix(X_test, feature_names=df_columns)
-    dtrain = xgb.DMatrix(X_train, y_train, feature_names=df_columns)
-    # kfold = 5
-    # skf = StratifiedKFold(n_splits=kfold, random_state=42)
+    d_test = xgb.DMatrix(X_test, feature_names=df_columns)
+
+    kfold = 5
+    skf = StratifiedShuffleSplit(n_splits=kfold, random_state=42)
 
     xgb_params = {
         'eta': 0.01,
@@ -67,26 +69,37 @@ def main():
         'silent': 1
     }
 
-    cv_result = xgb.cv(dict(xgb_params),
-                       dtrain,
-                       num_boost_round=400,
-                       early_stopping_rounds=100,
-                       verbose_eval=20,
-                       show_stdv=False,
-                       feval=metric.gini_xgb,
-                       maximize=True
-                       )
+    cv_scores = []
+    roof_predict_test = 0
 
-    best_num_boost_rounds = len(cv_result)
-    print('best_num_boost_rounds = {}'.format(best_num_boost_rounds))
-    # train model
-    print('---> training on total training data')
-    model = xgb.train(dict(xgb_params), dtrain,
-                      num_boost_round=best_num_boost_rounds)
+    for i, (train_index, valid_index) in enumerate(skf.split(train_all, y_train_all)):
+        print('-----> Perform Fold %d/%d' % (i + 1, kfold))
+        X_train, X_valid = train_all.ix[train_index], train_all.ix[valid_index]
+        y_train, y_valid = y_train_all[train_index], y_train_all[valid_index]
+        # Convert our data into XGBoost format
+        d_train = xgb.DMatrix(X_train, y_train)
+        d_valid = xgb.DMatrix(X_valid, y_valid)
+        watchlist = [(d_train, 'train'), (d_valid, 'valid')]
 
+        model = xgb.train(xgb_params,
+                          d_train,
+                          num_boost_round=2000,
+                          evals=watchlist,
+                          early_stopping_rounds=100,
+                          feval=metric.gini_xgb,
+                          maximize=True,
+                          verbose_eval=20)
+
+        # predict validate
+        valid_gini = metric.gini_normalized(y_valid, model.predict(d_valid))
+        cv_scores.append(valid_gini)
+        # Predict on our test data
+        p_test = model.predict(d_test)
+        roof_predict_test += p_test / kfold
+
+    print('Mean cv gini: {}'.format(np.mean(cv_scores)))
     print('---> predict submit')
-    y_pred = model.predict(dtest)
-    df_sub = pd.DataFrame({'id': id_test, 'target': y_pred})
+    df_sub = pd.DataFrame({'id': id_test, 'target': roof_predict_test})
     submission_path = '../result/{}_submission_{}.csv.gz'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))

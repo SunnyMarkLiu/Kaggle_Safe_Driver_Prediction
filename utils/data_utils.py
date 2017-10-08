@@ -33,11 +33,11 @@ def load_dataset(base_data_dir, op_scope):
     if not os.path.exists(test_path):
         test = pd.read_csv(Configure.original_test_path)
         # for public lb test
-        # if base_data_dir == 'sub_datas':
-        #     shuffled_index = np.arange(0, test.shape[0], 1)
-        #     np.random.shuffle(shuffled_index)
-        #     random_indexs = shuffled_index[:int(test.shape[0] * 0.00001)]
-        #     test = test.iloc[random_indexs, :]
+        if base_data_dir == 'sub_datas':
+            shuffled_index = np.arange(0, test.shape[0], 1)
+            np.random.shuffle(shuffled_index)
+            random_indexs = shuffled_index[:int(test.shape[0] * 0.00001)]
+            test = test.iloc[random_indexs, :]
 
     else:
         test = pd.read_hdf(test_path, 'data')

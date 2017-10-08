@@ -14,6 +14,8 @@ import time
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
+from optparse import OptionParser
+
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -26,9 +28,9 @@ from conf.configure import Configure
 from utils import feature_util
 
 
-def main():
+def main(base_data_dir):
     # final operate dataset
-    files = os.listdir(Configure.base_data_path)
+    files = os.listdir(Configure.base_data_path.format(base_data_dir))
     op_scope = 0
     for f in files:
         if 'operate' in f:
@@ -36,8 +38,8 @@ def main():
             if op > op_scope:
                 op_scope = op
 
-    print("---> load datasets from scope {}".format(op_scope))
-    train, test = data_utils.load_dataset(op_scope)
+    print("---> load datasets from {} scope {}".format(base_data_dir, op_scope))
+    train, test = data_utils.load_dataset(base_data_dir, op_scope)
 
     id_test = test['id']
 
@@ -135,5 +137,18 @@ def main():
 
 
 if __name__ == "__main__":
+    parser = OptionParser()
+
+    parser.add_option(
+        "-d", "--base_data_dir",
+        dest="base_data_dir",
+        default="full_datas",
+        help="""base dataset dir: 
+                    full_datas, 
+                    sub_datas"""
+    )
+
+    options, _ = parser.parse_args()
+
     print("========== simple xgboost model for select features ==========")
-    main()
+    main(options.base_data_dir)

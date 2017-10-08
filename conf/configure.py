@@ -16,10 +16,10 @@ import time
 
 class Configure(object):
 
-    base_data_path = '/d_2t/lq/kaggle/Kaggle_Safe_Driver_Prediction/input/'
-    original_train_path = base_data_path + 'train.csv'
-    original_test_path = base_data_path + 'test.csv'
+    original_train_path = '/d_2t/lq/kaggle/Kaggle_Safe_Driver_Prediction/input/train.csv'
+    original_test_path = '/d_2t/lq/kaggle/Kaggle_Safe_Driver_Prediction/input/test.csv'
 
+    base_data_path = '/d_2t/lq/kaggle/Kaggle_Safe_Driver_Prediction/input/{}/'
     processed_train_path = base_data_path + 'operate_{}_train.h5'
     processed_test_path = base_data_path + 'operate_{}_test.h5'
 

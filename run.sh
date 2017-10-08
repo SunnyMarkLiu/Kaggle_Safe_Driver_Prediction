@@ -4,4 +4,4 @@ cd features
 sh run.sh
 cd ../model/
 
-python xgboost_model.py
+python simple_xgboost_feature_select.py

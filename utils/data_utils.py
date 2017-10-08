@@ -16,8 +16,8 @@ import pandas as pd
 from conf.configure import Configure
 
 
-def load_dataset(base_data_dir, op_scope):
-    train_path = Configure.processed_train_path.format(base_data_dir, op_scope)
+def load_dataset(op_scope):
+    train_path = Configure.processed_train_path.format(op_scope)
     if not os.path.exists(train_path):
         train = pd.read_csv(Configure.original_train_path)
 
@@ -28,7 +28,7 @@ def load_dataset(base_data_dir, op_scope):
     else:
         train = pd.read_hdf(train_path, 'data')
 
-    test_path = Configure.processed_test_path.format(base_data_dir, op_scope)
+    test_path = Configure.processed_test_path.format(op_scope)
     if not os.path.exists(test_path):
         test = pd.read_csv(Configure.original_test_path)
 

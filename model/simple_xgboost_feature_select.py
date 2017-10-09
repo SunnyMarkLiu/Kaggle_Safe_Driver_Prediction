@@ -43,7 +43,7 @@ def main(base_data_dir):
 
     id_test = test['id']
 
-    y_train_all = train['target'].values
+    y_train_all = train['target']
 
     train.drop(['id', 'target'], axis=1, inplace=True)
     test.drop(['id'], axis=1, inplace=True)

@@ -11,7 +11,6 @@ import sys
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
-import numpy as np
 import pandas as pd
 import cPickle
 from conf.configure import Configure
@@ -23,10 +22,8 @@ def load_dataset(base_data_dir, op_scope):
         train = pd.read_csv(Configure.original_train_path)
 
         if base_data_dir == 'sub_datas':
-            shuffled_index = np.arange(0, train.shape[0], 1)
-            np.random.shuffle(shuffled_index)
-            random_indexs = shuffled_index[:int(train.shape[0] * 0.2)]
-            train = train.iloc[random_indexs, :]
+            train = train.sample(frac=0.2, random_state=42, replace=True)
+            train.reset_index(inplace=True)
     else:
         with open(train_path, "rb") as f:
             train = cPickle.load(f)
@@ -36,10 +33,8 @@ def load_dataset(base_data_dir, op_scope):
         test = pd.read_csv(Configure.original_test_path)
         # for public lb test
         if base_data_dir == 'sub_datas':
-            shuffled_index = np.arange(0, test.shape[0], 1)
-            np.random.shuffle(shuffled_index)
-            random_indexs = shuffled_index[:int(test.shape[0] * 0.00001)]
-            test = test.iloc[random_indexs, :]
+            test = test.sample(frac = 0.00001, random_state=42, replace=True)
+            test.reset_index(inplace=True)
 
     else:
         with open(test_path, "rb") as f:

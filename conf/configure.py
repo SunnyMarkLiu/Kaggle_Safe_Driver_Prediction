@@ -20,7 +20,7 @@ class Configure(object):
     original_test_path = '/d_2t/lq/kaggle/Kaggle_Safe_Driver_Prediction/input/test.csv'
 
     base_data_path = '/d_2t/lq/kaggle/Kaggle_Safe_Driver_Prediction/input/{}/'
-    processed_train_path = base_data_path + 'operate_{}_train.h5'
-    processed_test_path = base_data_path + 'operate_{}_test.h5'
+    processed_train_path = base_data_path + 'operate_{}_train.pkl'
+    processed_test_path = base_data_path + 'operate_{}_test.pkl'
 
     submission_path = '../result/submission_{}.csv.gz'.format(time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime(time.time())))

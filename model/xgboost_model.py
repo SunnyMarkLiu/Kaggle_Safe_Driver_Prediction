@@ -38,7 +38,7 @@ def main(base_data_dir):
                 op_scope = op
 
     print("---> load datasets from from {} scope {}".format(base_data_dir, op_scope))
-    train, test = data_utils.load_dataset(op_scope)
+    train, test = data_utils.load_dataset(base_data_dir, op_scope)
 
     id_test = test['id']
 
@@ -66,7 +66,7 @@ def main(base_data_dir):
         'max_depth': 8,
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 1,
+        'gpu_id': 0,
         'nthread': -1,
         'silent': 1
     }

@@ -13,6 +13,7 @@ sys.path.append(module_path)
 
 import numpy as np
 import pandas as pd
+import cPickle
 from conf.configure import Configure
 
 
@@ -27,7 +28,8 @@ def load_dataset(base_data_dir, op_scope):
             random_indexs = shuffled_index[:int(train.shape[0] * 0.2)]
             train = train.iloc[random_indexs, :]
     else:
-        train = pd.read_hdf(train_path, 'data')
+        with open(train_path, "rb") as f:
+            train = cPickle.load(f)
 
     test_path = Configure.processed_test_path.format(base_data_dir, op_scope)
     if not os.path.exists(test_path):
@@ -40,7 +42,8 @@ def load_dataset(base_data_dir, op_scope):
             test = test.iloc[random_indexs, :]
 
     else:
-        test = pd.read_hdf(test_path, 'data')
+        with open(test_path, "rb") as f:
+            test = cPickle.load(f)
 
     return train, test
 
@@ -49,8 +52,10 @@ def save_dataset(base_data_dir, train, test, op_scope):
 
     if train is not None:
         train_path = Configure.processed_train_path.format(base_data_dir, op_scope)
-        train.to_hdf(train_path, 'data', append=True)
+        with open(train_path, "wb") as f:
+            cPickle.dump(train, f, -1)
 
     if test is not None:
         test_path = Configure.processed_test_path.format(base_data_dir, op_scope)
-        test.to_hdf(test_path, 'data', append=True)
+        with open(test_path, "wb") as f:
+            cPickle.dump(test, f, -1)

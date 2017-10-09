@@ -11,4 +11,4 @@ cd features
 sh run.sh ${base_data_dir}
 cd ../model/
 
-python simple_xgboost_feature_select.py
+python simple_xgboost_feature_select.py -d ${base_data_dir}

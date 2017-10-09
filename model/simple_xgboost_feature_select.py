@@ -43,7 +43,7 @@ def main(base_data_dir):
 
     id_test = test['id']
 
-    y_train_all = train['target']
+    y_train_all = train['target'].values
 
     train.drop(['id', 'target'], axis=1, inplace=True)
     test.drop(['id'], axis=1, inplace=True)
@@ -68,7 +68,7 @@ def main(base_data_dir):
         'objective': 'binary:logistic',
         'eval_metric': 'rmse',
         'updater': 'grow_gpu',
-        'gpu_id': 1,
+        'gpu_id': 0,
         'nthread': -1,
         'silent': 1
     }

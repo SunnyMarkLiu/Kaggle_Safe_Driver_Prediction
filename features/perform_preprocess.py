@@ -16,48 +16,53 @@ sys.path.append(module_path)
 from optparse import OptionParser
 
 import numpy as np
-from utils import data_utils, dataframe_util, jobs
+import pandas as pd
+from utils import data_utils
 from conf.configure import Configure
+import warnings
+
+warnings.filterwarnings('ignore')
 
 
-def impute_missing_data(df):
+def impute_missing_data(all_df):
     """
     填充缺失值
     """
-    missing_df = dataframe_util.contains_null(df)
+    mode_features = ['ps_ind_04_cat', 'ps_car_07_cat', 'ps_car_11', 'ps_ind_04_cat',
+                     'ps_car_01_cat', 'ps_ind_02_cat', 'ps_car_09_cat', 'ps_ind_05_cat',
+                     'ps_car_07_cat']
 
-    cat_cols = [col for col in missing_df.column_name if 'cat' in col]
-    bin_cols = [col for col in missing_df.column_name if 'bin' in col]
-    con_cols = [col for col in missing_df.column_name if col not in bin_cols + cat_cols]
+    for col in mode_features:
+        all_df[col].fillna(value=all_df[col].mode(), inplace=True)
 
-    for col in cat_cols:
-        df[col].fillna(value=df[col].mode(), inplace=True)
-
-    for col in bin_cols:
-        df[col].fillna(value=df[col].mode(), inplace=True)
-
-    for col in con_cols:
-        df[col].fillna(value=df[col].mean(), inplace=True)
-
-    return df
+    remain_minus_one = ['ps_car_03_cat', 'ps_car_05_cat', 'ps_reg_03', 'ps_car_14']
+    for col in remain_minus_one:
+        all_df[col].fillna(value=all_df[col].mean(), inplace=True)
+    return all_df
 
 
 def main(base_data_dir):
     op_scope = 0
-    if os.path.exists(Configure.processed_train_path.format(base_data_dir, op_scope + 1)):
-        return
+    # if os.path.exists(Configure.processed_train_path.format(base_data_dir, op_scope + 1)):
+    #     return
 
     print("---> load datasets from scope {}".format(op_scope))
     train, test = data_utils.load_dataset(base_data_dir, op_scope)
     print("train: {}, test: {}".format(train.shape, test.shape))
 
-    # train.replace(-1, np.NaN, inplace=True)
-    # test.replace(-1, np.NaN, inplace=True)
+    train_target = train['target']
+    del train['target']
+
+    all_df = pd.concat([train, test])
+    # all_df.replace(-1, np.NaN, inplace=True)
     #
     # print('---> perform impute missing data')
-    # train = jobs.parallelize_dataframe(train, impute_missing_data)
-    # test = jobs.parallelize_dataframe(test, impute_missing_data)
+    # all_df = impute_missing_data(all_df)
 
+    train = all_df.iloc[:train.shape[0], :]
+    test = all_df.iloc[train.shape[0]:, :]
+
+    train.loc[:, 'target'] = train_target.values
     print("train: {}, test: {}".format(train.shape, test.shape))
     print("---> save datasets")
     data_utils.save_dataset(base_data_dir, train, test, op_scope + 1)

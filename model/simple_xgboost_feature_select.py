@@ -49,8 +49,8 @@ def main(base_data_dir):
     test.drop(['id'], axis=1, inplace=True)
 
     print("train: {}, test: {}".format(train.shape, test.shape))
-    print('---> feature check before modeling')
-    feature_util.feature_check_before_modeling(train, test, train.columns)
+    # print('---> feature check before modeling')
+    # feature_util.feature_check_before_modeling(train, test, train.columns)
 
     print("---> start cv training")
     train_all = train

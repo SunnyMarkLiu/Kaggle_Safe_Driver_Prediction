@@ -4,7 +4,7 @@
 # -> full_datas
 # -> sub_datas
 
-base_data_dir='full_datas'
+base_data_dir='sub_datas'
 echo "==> base_data_dir:" ${base_data_dir}
 
 cd features

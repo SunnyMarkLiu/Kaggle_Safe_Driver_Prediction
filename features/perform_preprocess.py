@@ -50,19 +50,12 @@ def main(base_data_dir):
     train, test = data_utils.load_dataset(base_data_dir, op_scope)
     print("train: {}, test: {}".format(train.shape, test.shape))
 
-    train_target = train['target']
-    del train['target']
+    print('---> ps_car_15 power')
+    train['ps_car_15_power'] = np.round(train['ps_car_15'] ** 2)
+    test['ps_car_15_power'] = np.round(test['ps_car_15'] ** 2)
+    del train['ps_car_15']
+    del test['ps_car_15']
 
-    all_df = pd.concat([train, test])
-    # all_df.replace(-1, np.NaN, inplace=True)
-    #
-    # print('---> perform impute missing data')
-    # all_df = impute_missing_data(all_df)
-
-    train = all_df.iloc[:train.shape[0], :]
-    test = all_df.iloc[train.shape[0]:, :]
-
-    train.loc[:, 'target'] = train_target.values
     print("train: {}, test: {}".format(train.shape, test.shape))
     print("---> save datasets")
     data_utils.save_dataset(base_data_dir, train, test, op_scope + 1)

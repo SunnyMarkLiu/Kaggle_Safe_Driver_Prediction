@@ -16,9 +16,30 @@ sys.path.append(module_path)
 from optparse import OptionParser
 
 import numpy as np
-import pandas as pd
-from utils import data_utils, jobs
+from utils import data_utils, dataframe_util, jobs
 from conf.configure import Configure
+
+
+def impute_missing_data(df):
+    """
+    填充缺失值
+    """
+    missing_df = dataframe_util.contains_null(df)
+
+    cat_cols = [col for col in missing_df.column_name if 'cat' in col]
+    bin_cols = [col for col in missing_df.column_name if 'bin' in col]
+    con_cols = [col for col in missing_df.column_name if col not in bin_cols + cat_cols]
+
+    for col in cat_cols:
+        df[col].fillna(value=df[col].mode(), inplace=True)
+
+    for col in bin_cols:
+        df[col].fillna(value=df[col].mode(), inplace=True)
+
+    for col in con_cols:
+        df[col].fillna(value=df[col].mean(), inplace=True)
+
+    return df
 
 
 def main(base_data_dir):
@@ -29,6 +50,13 @@ def main(base_data_dir):
     print("---> load datasets from scope {}".format(op_scope))
     train, test = data_utils.load_dataset(base_data_dir, op_scope)
     print("train: {}, test: {}".format(train.shape, test.shape))
+
+    # train.replace(-1, np.NaN, inplace=True)
+    # test.replace(-1, np.NaN, inplace=True)
+    #
+    # print('---> perform impute missing data')
+    # train = jobs.parallelize_dataframe(train, impute_missing_data)
+    # test = jobs.parallelize_dataframe(test, impute_missing_data)
 
     print("train: {}, test: {}".format(train.shape, test.shape))
     print("---> save datasets")

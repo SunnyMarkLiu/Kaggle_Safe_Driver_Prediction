@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.metrics import mean_squared_error
 from utils import metric
 from utils import data_utils
 
@@ -71,7 +72,10 @@ def main(base_data_dir):
         'silent': 1
     }
 
-    cv_scores = []
+    train_rmses = []
+    train_ginis = []
+    valid_rmses = []
+    valid_ginis = []
     roof_predict_test = 0
 
     for i, (train_index, valid_index) in enumerate(skf.split(train_all, y_train_all)):
@@ -85,21 +89,37 @@ def main(base_data_dir):
 
         model = xgb.train(xgb_params,
                           d_train,
-                          num_boost_round=2000,
+                          num_boost_round=400,
                           evals=watchlist,
                           early_stopping_rounds=100,
                           feval=metric.gini_xgb,
                           maximize=True,
                           verbose_eval=20)
 
+        # predict train
+        predict_train = model.predict(d_train)
+        train_rmse = mean_squared_error(y_train, predict_train)
+        train_gini = metric.gini_normalized(y_train, predict_train)
+
+        train_rmses.append(train_rmse)
+        train_ginis.append(train_gini)
+
         # predict validate
-        valid_gini = metric.gini_normalized(y_valid, model.predict(d_valid))
-        cv_scores.append(valid_gini)
+        predict_valid = model.predict(d_valid)
+        valid_rmse = mean_squared_error(y_valid, predict_valid)
+        valid_gini = metric.gini_normalized(y_valid, predict_valid)
+
+        valid_rmses.append(valid_rmse)
+        valid_ginis.append(valid_gini)
+
         # Predict on our test data
         p_test = model.predict(d_test)
         roof_predict_test += p_test / kfold
 
-    print('Mean cv gini: {}'.format(np.mean(cv_scores)))
+    print('----------------------------------------------')
+    print('Mean train rmse: {} ,  train gini: {}'.format(np.mean(train_rmses), np.mean(train_ginis)))
+    print('Mean valid rmse: {} ,  valid gini: {}'.format(np.mean(valid_rmses), np.mean(valid_ginis)))
+
     print('---> predict submit')
     df_sub = pd.DataFrame({'id': id_test, 'target': roof_predict_test})
     submission_path = '../result/{}_submission_{}.csv.gz'.format('xgboost',

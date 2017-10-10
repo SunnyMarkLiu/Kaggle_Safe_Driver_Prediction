@@ -118,8 +118,8 @@ def main(base_data_dir):
         roof_predict_test += p_test / kfold
 
     print('----------------------------------------------')
-    print('Mean train rmse: {},  train gini: {}'.format(np.mean(train_rmses), np.mean(train_ginis)))
-    print('Mean valid rmse: {},  valid gini: {}'.format(np.mean(valid_rmses), np.mean(valid_ginis)))
+    print('Mean train rmse: {} ,  train gini: {}'.format(np.mean(train_rmses), np.mean(train_ginis)))
+    print('Mean valid rmse: {} ,  valid gini: {}'.format(np.mean(valid_rmses), np.mean(valid_ginis)))
 
     print('---> predict submit')
     df_sub = pd.DataFrame({'id': id_test, 'target': roof_predict_test})
